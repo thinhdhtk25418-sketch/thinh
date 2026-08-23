@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "@fontsource/inter";
+@import "@fontsource/playfair-display";
+
+@theme {
+  --color-primary-green: #2B4236;
+  --color-primary-orange: #C87556;
+  --color-bg-cream: #F5F2EC;
+  --color-card-bg: #FCFAF6;
+  
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-cream);
+  color: #333;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}

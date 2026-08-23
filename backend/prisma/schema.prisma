@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Prompt {
+  id        String   @id @default(uuid())
+  task      String   // "task1" | "task2"
+  type      String
+  text      String
+  sample    String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Essays    Essay[]
+}
+
+model Essay {
+  id             String   @id @default(uuid())
+  task           String   // "task1" | "task2"
+  promptId       String
+  studentName    String
+  content        String
+  wordCount      Int
+  status         String   @default("draft") // draft | submitted | grading | graded
+  submittedAt    DateTime?
+  gradedAt       DateTime?
+  timerEndsAt    DateTime?
+  timerExpiredAt DateTime?
+  
+  ta             Float?
+  cc             Float?
+  lr             Float?
+  gra            Float?
+  overall        Float?
+  
+  feedback       String?
+  annotations    Json?    // Array of { start, end, quote, feedback, createdAt }
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  prompt         Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+}
