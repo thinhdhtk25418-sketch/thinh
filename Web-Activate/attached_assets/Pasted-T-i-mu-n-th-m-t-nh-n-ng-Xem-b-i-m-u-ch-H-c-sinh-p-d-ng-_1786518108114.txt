@@ -1,0 +1,20 @@
+Tôi muốn thêm tính năng "Xem bài mẫu" ở chế độ Học sinh, áp dụng cho cả Task 1 và Task 2.
+
+YÊU CẦU CHỨC NĂNG:
+1. Mỗi đề bài (Prompt) có thêm một trường mới: "sample" (bài mẫu, dạng text dài, không bắt buộc phải có).
+2. Trong khu vực quản lý đề bài của giáo viên (Teacher > Thư viện đề bài), thêm một ô textarea "Bài mẫu (không bắt buộc)" bên cạnh ô nội dung đề, để giáo viên nhập/sửa bài mẫu cho từng đề. Lưu trường này qua API giống như các trường khác của Prompt (cần cập nhật schema cơ sở dữ liệu, API tạo/sửa đề để hỗ trợ trường "sample").
+3. Ở phía học sinh, thêm nút "Xem bài mẫu" xuất hiện tại nơi học sinh xem lại bài đã nộp của mình (màn hình review sau khi nộp bài).
+4. Nút "Xem bài mẫu" CHỈ hiện và bấm được khi thỏa đồng thời các điều kiện sau, cho đúng đề bài đó:
+   - Học sinh đã nộp ít nhất một bài cho đúng đề bài này (status là "submitted", "grading" hoặc "graded" — không tính bài đang ở trạng thái "draft").
+   - Bài đã nộp đó có số từ đạt tối thiểu theo đúng loại bài: từ 150 từ trở lên với Task 1, từ 250 từ trở lên với Task 2 (dùng lại đúng hàm/ngưỡng minWords hiện có trong code, không hardcode số cố định).
+   - Đề bài đó phải có sẵn nội dung "sample" do giáo viên nhập (nếu giáo viên chưa nhập bài mẫu cho đề này thì không hiện nút, hoặc hiện thông báo "Đề này chưa có bài mẫu").
+5. Nếu học sinh CHƯA đủ điều kiện, không hiện nút mà thay bằng dòng giải thích ngắn, ví dụ:
+   - Nếu chưa nộp bài cho đề này: "Nộp bài đủ số từ tối thiểu để mở khoá bài mẫu."
+   - Nếu đã nộp nhưng chưa đủ số từ tối thiểu: "Bài viết cần tối thiểu [150/250] từ để mở khoá bài mẫu (bài của bạn hiện có [số từ thực tế] từ)."
+6. Khi bấm "Xem bài mẫu", hiện nội dung bài mẫu trong một modal/dialog giống phong cách các modal đã có sẵn trong app (ví dụ modal xác nhận xoá), có nút đóng lại. Không cho chỉnh sửa nội dung bài mẫu ở phía học sinh, chỉ xem.
+
+Sau khi làm xong, hãy tự kiểm tra các trường hợp:
+- Học sinh chưa nộp bài nào cho đề đó → không thấy nút, chỉ thấy dòng nhắc.
+- Học sinh đã nộp nhưng dưới ngưỡng từ tối thiểu → không thấy nút, thấy đúng số từ còn thiếu.
+- Học sinh đã nộp và đủ từ, nhưng đề chưa có bài mẫu → không hiện nút hoặc báo rõ chưa có bài mẫu.
+- Học sinh đã nộp, đủ từ, và đề có bài mẫu → thấy nút, bấm vào xem đúng nội dung bài mẫu của đúng đề đó.
