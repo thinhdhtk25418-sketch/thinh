@@ -6,9 +6,15 @@ import path from 'path';
 const router = Router();
 
 // Configure multer for image uploads
+const uploadDir = path.join(__dirname, '../../uploads/');
+import fs from 'fs';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../uploads/'));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
