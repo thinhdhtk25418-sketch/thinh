@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Loader } from '../../components/ui/Loader';
 import { Menu, ChevronRight, MessageSquarePlus, Save, Send, Clock, BookOpen, User, CheckCircle2 } from 'lucide-react';
 
 export default function GradingWorkspace() {
@@ -106,7 +107,7 @@ export default function GradingWorkspace() {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-slate-500">Đang tải bài viết...</div>;
+  if (isLoading) return <Loader />;
   if (!essay) return <div className="p-8 text-slate-500">Không tìm thấy bài viết.</div>;
 
   const renderContentWithAnnotations = () => {

@@ -5,20 +5,21 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Menu, ChevronRight, Lock, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Loader } from '../../components/ui/Loader';
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
 
   const { data: essays, isLoading } = useQuery({
-    queryKey: ['essays'],
+    queryKey: ['essays-all'],
     queryFn: async () => {
       const res = await api.get('/essays');
       return res.data;
     }
   });
 
-  if (isLoading) return <div className="p-8 font-sans">Đang tải dữ liệu...</div>;
+  if (isLoading) return <Loader />;
 
   const filteredEssays = essays?.filter((e: any) => {
     if (filter === 'pending') return e.status === 'submitted' || e.status === 'grading';
