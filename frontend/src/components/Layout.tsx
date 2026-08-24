@@ -45,8 +45,9 @@ export const Layout = () => {
           <button 
             onClick={() => {
               if (role === 'student') {
-                const pwd = prompt('Nhập mã truy cập giáo viên: (Gợi ý: 123456)');
-                if (pwd === '123456') {
+                const pwd = prompt('Nhập mã truy cập giáo viên:');
+                const correctPwd = import.meta.env.VITE_TEACHER_PASSWORD || '123456';
+                if (pwd === correctPwd) {
                   useAppStore.getState().setRole('teacher');
                   window.location.href = '/teacher';
                 } else {
