@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAppStore } from '../../store/useAppStore';
 import { Button } from '../../components/ui/Button';
-import { Menu, ChevronRight, Save, Clock, CheckCircle2 } from 'lucide-react';
+import { Menu, ChevronRight, Save, Clock, CheckCircle2, ZoomIn, X } from 'lucide-react';
 
 export default function WritingWorkspace() {
   const { promptId } = useParams();
@@ -19,7 +19,12 @@ export default function WritingWorkspace() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
+  
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(40);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: prompt, isLoading } = useQuery({
     queryKey: ['prompt', promptId],
@@ -75,6 +80,38 @@ export default function WritingWorkspace() {
     };
   }, [timeLeft, isTimerRunning, isTimerEnabled, content, saveMutation]);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidthPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      if (newWidthPercent >= 25 && newWidthPercent <= 75) {
+        setLeftWidth(newWidthPercent);
+      }
+    };
+
+    const handleMouseUp = () => setIsDragging(false);
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isDragging]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
@@ -124,9 +161,9 @@ export default function WritingWorkspace() {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-10 max-w-[1400px] w-full mx-auto pb-10 h-[calc(100vh-100px)]">
+      <div ref={containerRef} className="flex-1 flex flex-col lg:flex-row gap-0 px-10 max-w-[1500px] w-full mx-auto pb-10 h-[calc(100vh-100px)]">
         {/* Left: Prompt Panel */}
-        <div className="w-full lg:w-[40%] flex flex-col bg-[#FCFAF6] rounded-3xl border border-[#E5E0D8] p-8 shadow-sm overflow-y-auto">
+        <div style={{ width: `${leftWidth}%` }} className="flex flex-col bg-[#FCFAF6] rounded-3xl border border-[#E5E0D8] p-8 shadow-sm overflow-y-auto min-w-[25%]">
           <div className="flex items-center justify-between mb-8">
             <span className="text-[10px] uppercase font-bold px-3 py-1.5 rounded-full tracking-widest" style={{ color: themeColor, backgroundColor: `${themeColor}15` }}>
               {prompt.type}
@@ -146,7 +183,7 @@ export default function WritingWorkspace() {
                   className="ml-2 pl-2 border-l border-[#E5E0D8] text-slate-400 hover:text-red-500 transition-colors"
                   title="Tắt đồng hồ"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
@@ -168,14 +205,30 @@ export default function WritingWorkspace() {
           </h2>
 
           {prompt.image && (
-            <div className="mt-4 bg-white rounded-xl p-4 border border-[#E5E0D8] flex justify-center shadow-sm">
+            <div 
+              className="mt-4 bg-white rounded-xl p-4 border border-[#E5E0D8] flex justify-center shadow-sm relative group cursor-zoom-in"
+              onClick={() => setIsImageModalOpen(true)}
+            >
               <img src={import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') + prompt.image : `http://localhost:3000${prompt.image}`} alt="Prompt visual" className="w-full rounded-md object-contain" />
+              <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl">
+                <div className="bg-white/90 p-2 rounded-full shadow-sm">
+                  <ZoomIn className="w-6 h-6 text-slate-700" />
+                </div>
+              </div>
             </div>
           )}
         </div>
 
+        {/* Resizer Handle */}
+        <div 
+          className="w-6 cursor-col-resize flex items-center justify-center relative z-10 group shrink-0"
+          onMouseDown={() => setIsDragging(true)}
+        >
+          <div className={`w-1 h-16 rounded-full transition-colors ${isDragging ? 'bg-[#C87556]' : 'bg-slate-200 group-hover:bg-[#C87556]/50'}`} />
+        </div>
+
         {/* Right: Writing Area */}
-        <div className="w-full lg:w-[60%] flex flex-col bg-white rounded-3xl border border-[#E5E0D8] shadow-sm overflow-hidden relative">
+        <div style={{ width: `${100 - leftWidth}%` }} className="flex flex-col bg-white rounded-3xl border border-[#E5E0D8] shadow-sm overflow-hidden relative min-w-[25%]">
           
           {/* Top Bar inside writing area */}
           <div className="px-8 py-4 border-b border-[#E5E0D8] flex justify-between items-center bg-[#FCFAF6]">
@@ -223,6 +276,26 @@ export default function WritingWorkspace() {
           />
         </div>
       </div>
+
+      {/* Fullscreen Image Modal */}
+      {isImageModalOpen && prompt?.image && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-8 backdrop-blur-sm"
+          onClick={() => setIsImageModalOpen(false)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 p-2 rounded-full transition-all"
+            onClick={() => setIsImageModalOpen(false)}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img 
+            src={import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') + prompt.image : `http://localhost:3000${prompt.image}`} 
+            alt="Prompt visual fullscreen" 
+            className="max-w-full max-h-full rounded-lg shadow-2xl object-contain cursor-zoom-out scale-100 animate-in zoom-in duration-200"
+          />
+        </div>
+      )}
     </div>
   );
 }
