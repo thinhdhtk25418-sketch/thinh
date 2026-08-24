@@ -26,7 +26,7 @@ export const getEssay = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const essay = await prisma.essay.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: { prompt: true }
     });
     if (!essay) {
@@ -43,7 +43,7 @@ export const createEssay = async (req: Request, res: Response): Promise<void> =>
   try {
     const parseResult = createEssaySchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors });
+      res.status(400).json({ error: parseResult.error.issues });
       return;
     }
 
@@ -66,7 +66,7 @@ export const updateEssay = async (req: Request, res: Response): Promise<void> =>
     const { id } = req.params;
     const parseResult = updateEssaySchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors });
+      res.status(400).json({ error: parseResult.error.issues });
       return;
     }
 
@@ -76,7 +76,7 @@ export const updateEssay = async (req: Request, res: Response): Promise<void> =>
     }
 
     const essay = await prisma.essay.update({
-      where: { id },
+      where: { id: id as string },
       data: dataToUpdate
     });
     res.json(essay);
@@ -90,7 +90,7 @@ export const gradeEssay = async (req: Request, res: Response): Promise<void> => 
     const { id } = req.params;
     const parseResult = gradeEssaySchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors });
+      res.status(400).json({ error: parseResult.error.issues });
       return;
     }
 
@@ -101,7 +101,7 @@ export const gradeEssay = async (req: Request, res: Response): Promise<void> => 
 
     // annotations is received as object/array, prisma Json field handles it
     const essay = await prisma.essay.update({
-      where: { id },
+      where: { id: id as string },
       data: dataToUpdate
     });
     res.json(essay);
@@ -113,7 +113,7 @@ export const gradeEssay = async (req: Request, res: Response): Promise<void> => 
 export const deleteEssay = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.essay.delete({ where: { id } });
+    await prisma.essay.delete({ where: { id: id as string } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete essay' });

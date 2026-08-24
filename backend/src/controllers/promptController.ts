@@ -22,7 +22,7 @@ export const getPrompts = async (req: Request, res: Response) => {
 export const getPromptById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const prompt = await prisma.prompt.findUnique({ where: { id } });
+    const prompt = await prisma.prompt.findUnique({ where: { id: id as string } });
     if (!prompt) {
       res.status(404).json({ error: 'Prompt not found' });
       return;
@@ -37,7 +37,7 @@ export const createPrompt = async (req: Request, res: Response): Promise<void> =
   try {
     const parseResult = createPromptSchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors });
+      res.status(400).json({ error: parseResult.error.issues });
       return;
     }
     
@@ -63,7 +63,7 @@ export const updatePrompt = async (req: Request, res: Response): Promise<void> =
     const { id } = req.params;
     const parseResult = updatePromptSchema.safeParse(req.body);
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors });
+      res.status(400).json({ error: parseResult.error.issues });
       return;
     }
     
@@ -73,7 +73,7 @@ export const updatePrompt = async (req: Request, res: Response): Promise<void> =
     }
 
     const prompt = await prisma.prompt.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         ...parseResult.data,
         ...(image && { image })
@@ -88,7 +88,7 @@ export const updatePrompt = async (req: Request, res: Response): Promise<void> =
 export const deletePrompt = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.prompt.delete({ where: { id } });
+    await prisma.prompt.delete({ where: { id: id as string } });
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete prompt' });
